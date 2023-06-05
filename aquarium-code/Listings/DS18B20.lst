@@ -1,0 +1,94 @@
+C51 COMPILER V9.54   DS18B20                                                               05/02/2023 15:29:16 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE DS18B20
+OBJECT MODULE PLACED IN .\Objects\DS18B20.obj
+COMPILER INVOKED BY: D:\Keil5\C51\BIN\C51.EXE DS18B20.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\DS1
+                    -8B20.lst) OBJECT(.\Objects\DS18B20.obj)
+
+line level    source
+
+   1          #include <REGX52.H>
+   2          #include "OneWire.h"
+   3          #include "LCD1602.h"
+   4          #include <stdlib.h>
+   5          
+   6          //DS18B20指令
+   7          #define DS18B20_SKIP_ROM                        0xCC
+   8          #define DS18B20_CONVERT_T                       0x44
+   9          #define DS18B20_READ_SCRATCHPAD         0xBE
+  10          
+  11          
+  12          /**
+  13            * @brief  DS18B20开始温度变换
+  14            * @param  无
+  15            * @retval 无
+  16            */
+  17          void DS18B20_ConvertT(void)
+  18          {
+  19   1              OneWire_Init();
+  20   1              OneWire_SendByte(DS18B20_SKIP_ROM);
+  21   1              OneWire_SendByte(DS18B20_CONVERT_T);
+  22   1      }
+  23          
+  24          /**
+  25            * @brief  DS18B20读取温度
+  26            * @param  无
+  27            * @retval 温度数值
+  28            */
+  29          float DS18B20_ReadT(void)
+  30          {
+  31   1              unsigned char TLSB,TMSB;
+  32   1              int Temp;
+  33   1              float Tempreature;
+  34   1              OneWire_Init();
+  35   1              OneWire_SendByte(DS18B20_SKIP_ROM);
+  36   1              OneWire_SendByte(DS18B20_READ_SCRATCHPAD);
+  37   1              TLSB=OneWire_ReceiveByte();
+  38   1              TMSB=OneWire_ReceiveByte();
+  39   1              Temp=(TMSB<<8)|TLSB;
+  40   1              Tempreature=Temp/16.0;
+  41   1              return Tempreature;
+  42   1      }
+  43          
+  44          void ShowTemperature()
+  45          {
+  46   1          
+  47   1          float temperature;
+  48   1          static float T;
+  49   1          DS18B20_ConvertT(); // 转换温度
+  50   1          temperature = DS18B20_ReadT(); // 读取温度
+  51   1          if (abs(temperature - DS18B20_ReadT()) < 2)
+  52   1          {
+  53   2              T = temperature;
+  54   2          }
+C51 COMPILER V9.54   DS18B20                                                               05/02/2023 15:29:16 PAGE 2   
+
+  55   1          if (T < 0) // 如果温度小于0
+  56   1          {
+  57   2              LCD_ShowChar(2, 12, '-'); // 显示负号
+  58   2              T = -T; // 将温度变为正数
+  59   2          }
+  60   1          else // 如果温度大于等于0
+  61   1          {
+  62   2              LCD_ShowChar(2, 12, '+'); // 显示正号
+  63   2          }
+  64   1          LCD_ShowNum(2, 13, (unsigned long)T, 2); // 显示温度整数部分
+  65   1          LCD_ShowChar(2, 15, '.'); // 显示小数点
+  66   1          LCD_ShowNum(2, 16, (unsigned long)(T * 10) % 10, 1); // 显示温度小数部分
+  67   1      
+  68   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    253    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      4       5
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
